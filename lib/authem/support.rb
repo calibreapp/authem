@@ -7,14 +7,11 @@ module Authem
     end
 
     def current
-      if ivar_defined?
-        ivar_get
-      else
-        ivar_set(fetch_subject_by_token)
-      end
+      subject = ivar_defined? ? ivar_get : ivar_set(fetch_subject_by_token)
+      subject && role.klass.find(subject.id)
     end
 
-    def sign_in(record, options={})
+    def sign_in(record, options = {})
       check_record! record
       ivar_set record
       auth_session = create_auth_session(record, options)
@@ -29,7 +26,8 @@ module Authem
 
     def sign_out
       ivar_set nil
-      Authem::Session.where(role: role_name, token: current_auth_token).delete_all
+      Authem::Session.where(role: role_name, token: current_auth_token)
+        .delete_all
       cookies.delete key, domain: :all
       session.delete key
     end
@@ -49,7 +47,8 @@ module Authem
 
     def deny_access
       # default landing point for deny_#{role_name}_access
-      fail NotImplementedError, "No strategy for require_#{role_name} defined. Please define `deny_#{role_name}_access` method in your controller"
+      fail NotImplementedError,
+           "No strategy for require_#{role_name} defined. Please define `deny_#{role_name}_access` method in your controller"
     end
 
     private
@@ -74,7 +73,9 @@ module Authem
     end
 
     def create_auth_session(record, options)
-      Authem::Session.create!(role: role_name, subject: record, ttl: options[:ttl])
+      Authem::Session.create!(
+        role: role_name, subject: record, ttl: options[:ttl]
+      )
     end
 
     def save_session(auth_session)
@@ -83,9 +84,9 @@ module Authem
 
     def save_cookie(auth_session)
       cookies.signed[key] = {
-        value:   auth_session.token,
+        value: auth_session.token,
         expires: auth_session.expires_at,
-        domain:  :all
+        domain: :all
       }
     end
 
