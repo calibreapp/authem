@@ -7,7 +7,7 @@ ActiveRecord::Base.establish_connection(
   database: ":memory:"
 )
 
-class CreateUsersMigration < ActiveRecord::Migration
+class CreateUsersMigration < ActiveRecord::Migration[7.0]
   def up
     create_table :users do |t|
       t.string :email
@@ -17,7 +17,7 @@ class CreateUsersMigration < ActiveRecord::Migration
   end
 end
 
-class CreateSessionsMigration < ActiveRecord::Migration
+class CreateSessionsMigration < ActiveRecord::Migration[7.0]
   def up
     create_table :authem_sessions do |t|
       t.string     :role,       null: false
