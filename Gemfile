@@ -1,5 +1,7 @@
 source "https://rubygems.org"
 
+gemspec
+
 gem "appraisal"
 
 group :test do
