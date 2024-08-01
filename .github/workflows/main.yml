@@ -23,4 +23,4 @@ jobs:
           ruby-version: ${{ matrix.ruby }}
 
       - name: Run the default task
-        run: bundle exec rspec
+        run: bin/rspec
