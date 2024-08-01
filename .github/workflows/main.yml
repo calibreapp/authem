@@ -24,4 +24,4 @@ jobs:
           bundler-cache: true
 
       - name: Run the default task
-        run: bin/rspec
+        run: bundle exec rspec
