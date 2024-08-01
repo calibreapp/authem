@@ -2,6 +2,8 @@ source "https://rubygems.org"
 
 gemspec
 
+gem "appraisal"
+
 group :test do
   gem "rspec", "~> 3.0"
   gem "rake"
