@@ -28,7 +28,12 @@ module Authem
       ivar_set nil
       Authem::Session.where(role: role_name, token: current_auth_token)
         .delete_all
-      cookies.delete key, domain: :all
+      cookie_domain = Authem.configuration.cookie_domain
+      if cookie_domain
+        cookies.delete key, domain: cookie_domain
+      else
+        cookies.delete key
+      end
       session.delete key
     end
 
@@ -83,11 +88,15 @@ module Authem
     end
 
     def save_cookie(auth_session)
-      cookies.signed[key] = {
+      cookie = {
         value: auth_session.token,
-        expires: auth_session.expires_at,
-        domain: :all
+        expires: auth_session.expires_at
       }
+
+      cookie_domain = Authem.configuration.cookie_domain
+      cookie[:domain] = cookie_domain if cookie_domain
+
+      cookies.signed[key] = cookie
     end
 
     def get_auth_session_by_token(token)

@@ -55,7 +55,7 @@ describe Authem::Controller do
   end
 
   class Cookies < HashWithIndifferentAccess
-    attr_reader :expires_at
+    attr_reader :expires_at, :last_domain
 
     def permanent
       self
@@ -66,13 +66,15 @@ describe Authem::Controller do
     def []=(key, value)
       if value.kind_of?(Hash) && value.key?(:expires)
         @expires_at = value[:expires]
+        @last_domain = value[:domain]
         super key, value.fetch(:value)
       else
         super
       end
     end
 
-    def delete(key, *)
+    def delete(key, options = {})
+      @last_domain = options[:domain]
       super key
     end
   end
@@ -380,6 +382,43 @@ describe Authem::Controller do
     it "raises the error when sign out can't guess the model properly" do
       message = "Ambigous match for #{user.inspect}: user, customer"
       expect{ controller.sign_out user }.to raise_error(Authem::AmbigousRoleError, message)
+    end
+  end
+
+  context "cookie domain configuration" do
+    let(:user){ User.create(email: "joe@example.com") }
+    let(:controller_klass){ Class.new(BaseController){ authem_for :user }}
+
+    after { Authem.reset_configuration! }
+
+    it "does not set a cookie domain by default" do
+      controller.sign_in user, remember: true
+      expect(cookies.last_domain).to be_nil
+    end
+
+    it "sets cookie domain when configured" do
+      Authem.configure { |c| c.cookie_domain = ".example.com" }
+      controller.sign_in user, remember: true
+      expect(cookies.last_domain).to eq(".example.com")
+    end
+
+    it "uses configured domain when deleting cookies on sign out" do
+      Authem.configure { |c| c.cookie_domain = ".example.com" }
+      controller.sign_in user, remember: true
+      controller.sign_out_user
+      expect(cookies.last_domain).to eq(".example.com")
+    end
+
+    it "does not pass domain when deleting cookies with default config" do
+      controller.sign_in user, remember: true
+      controller.sign_out_user
+      expect(cookies.last_domain).to be_nil
+    end
+
+    it "supports :all as cookie domain for backwards compatibility" do
+      Authem.configure { |c| c.cookie_domain = :all }
+      controller.sign_in user, remember: true
+      expect(cookies.last_domain).to eq(:all)
     end
   end
 
