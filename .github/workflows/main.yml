@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         ruby:
-          - 3.3
+          - 4.x
 
     steps:
       - uses: actions/checkout@v6
